@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArrayLab — Data Structure Playground</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --surface2: #1a2234;
+  --border: #1e2d45;
+  --accent: #00d4ff;
+  --accent2: #7c3aed;
+  --accent3: #f59e0b;
+  --green: #10b981;
+  --red: #ef4444;
+  --text: #e2e8f0;
+  --muted: #64748b;
+  --cell-w: 72px;
+  --cell-h: 72px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  user-select: none;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Layout ── */
+.wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 24px 100px;
+}
+
+/* ── Header ── */
+header {
+  padding: 36px 0 28px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 32px;
+}
+.logo {
+  width: 46px; height: 46px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 18px; font-weight: 700; color: #fff;
+  box-shadow: 0 0 24px rgba(0,212,255,0.35);
+  flex-shrink: 0;
+}
+h1 { font-size: 26px; font-weight: 700; letter-spacing: -.5px; }
+h1 em { color: var(--accent); font-style: normal; }
+.sub { font-size: 12px; color: var(--muted); font-family: 'Space Mono', monospace; margin-top: 2px; }
+
+/* ── Setup ── */
+.setup {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px 28px;
+  margin-bottom: 24px;
+  display: flex;
+  gap: 20px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label {
+  font-size: 10px; font-family: 'Space Mono', monospace;
+  color: var(--accent); text-transform: uppercase; letter-spacing: 1.5px;
+}
+.field input {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 20px; font-weight: 700;
+  padding: 10px 14px;
+  width: 90px;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+.field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,212,255,.1); }
+.field input::-webkit-inner-spin-button { opacity: .4; }
+.range-pair { display: flex; gap: 8px; align-items: center; }
+.range-pair span { color: var(--muted); font-size: 13px; font-family: 'Space Mono', monospace; }
+
+.btn-gen {
+  background: linear-gradient(135deg, var(--accent), #0099cc);
+  color: #000; border: none;
+  border-radius: 10px; padding: 13px 26px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  transition: transform .15s, box-shadow .2s;
+  box-shadow: 0 4px 20px rgba(0,212,255,.3);
+  white-space: nowrap;
+}
+.btn-gen:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,212,255,.5); }
+.btn-gen:active { transform: none; }
+
+/* ── Mode Pills ── */
+.modes {
+  display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap;
+}
+.mode-pill {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 7px 18px;
+  font-size: 12px; font-weight: 600;
+  font-family: 'Space Mono', monospace;
+  color: var(--muted); cursor: pointer;
+  transition: all .2s;
+}
+.mode-pill:hover { border-color: var(--accent); color: var(--accent); }
+.mode-pill.active {
+  background: rgba(0,212,255,.1);
+  border-color: var(--accent); color: var(--accent);
+}
+
+/* ── Complexity ── */
+.cx-row {
+  display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;
+}
+.cx { background: rgba(124,58,237,.15); border: 1px solid rgba(124,58,237,.3);
+  border-radius: 6px; padding: 4px 10px;
+  font-size: 11px; font-family: 'Space Mono', monospace; color: #a78bfa; }
+
+/* ── Instruction toast ── */
+.toast {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 12px;
+  font-family: 'Space Mono', monospace;
+  color: var(--muted);
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+.toast strong { color: var(--accent3); }
+
+/* ── Spawn Zone ── */
+.zone-label {
+  font-size: 10px; font-family: 'Space Mono', monospace;
+  color: var(--muted); text-transform: uppercase;
+  letter-spacing: 1.2px; margin-bottom: 8px;
+}
+.spawn-zone {
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  min-height: 110px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 28px;
+  position: relative;
+  transition: border-color .2s, background .2s;
+}
+.spawn-zone.drop-target {
+  border-color: var(--accent);
+  background: rgba(0,212,255,.04);
+}
+.spawn-empty {
+  color: var(--muted); font-size: 12px;
+  font-family: 'Space Mono', monospace;
+  text-align: center; width: 100%;
+}
+
+/* ── Structure Zone ── */
+.struct-label {
+  font-size: 10px; font-family: 'Space Mono', monospace;
+  color: var(--accent); text-transform: uppercase;
+  letter-spacing: 1.5px; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 10px;
+}
+.struct-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── Array Slots ── */
+.array-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 28px;
+  overflow-x: auto;
+}
+.array-slots {
+  display: flex;
+  gap: 0;
+  align-items: flex-end;
+  min-height: 100px;
+}
+.slot-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.slot {
+  width: var(--cell-w);
+  height: var(--cell-h);
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: border-color .2s, background .2s;
+  flex-shrink: 0;
+}
+.slot + .slot { margin-left: 4px; }
+.slot-idx {
+  font-size: 10px; font-family: 'Space Mono', monospace;
+  color: var(--muted);
+}
+.slot.has-cell { border-style: solid; border-color: #2d4a6e; }
+.slot.drop-over {
+  border-color: var(--accent);
+  background: rgba(0,212,255,.08);
+  box-shadow: 0 0 12px rgba(0,212,255,.25);
+}
+.slot-connector {
+  width: 4px; height: 2px;
+  background: var(--border);
+  margin-bottom: 36px;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+/* ── Linked List ── */
+.linked-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 28px;
+  overflow-x: auto;
+}
+.linked-rail {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  min-height: 100px;
+}
+.ll-node-wrap {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.ll-arrow {
+  display: flex;
+  align-items: center;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+.ll-arrow svg { display: block; }
+.ll-null {
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  color: var(--muted);
+  padding: 0 12px;
+  flex-shrink: 0;
+}
+.ll-drop-zone {
+  width: 40px; height: var(--cell-h);
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--border);
+  cursor: pointer;
+  transition: all .2s;
+  flex-shrink: 0;
+}
+.ll-drop-zone:hover, .ll-drop-zone.drop-over {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(0,212,255,.06);
+}
+
+/* ── Stack ── */
+.stack-container {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 28px;
+  align-items: flex-start;
+}
+.stack-well {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  width: 160px;
+  flex-shrink: 0;
+}
+.stack-well-title {
+  font-size: 10px; font-family: 'Space Mono', monospace;
+  color: var(--muted); text-transform: uppercase;
+  letter-spacing: 1px; margin-bottom: 12px;
+}
+.stack-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+.stack-slot {
+  width: var(--cell-w);
+  height: var(--cell-h);
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: border-color .2s, background .2s;
+  flex-shrink: 0;
+}
+.stack-slot.top-slot {
+  border-color: var(--accent3);
+  box-shadow: 0 0 10px rgba(245,158,11,.2);
+}
+.stack-slot.top-slot::after {
+  content: 'TOP';
+  position: absolute;
+  right: -38px;
+  font-size: 9px; font-family: 'Space Mono', monospace;
+  color: var(--accent3);
+  letter-spacing: 1px;
+}
+.stack-slot.drop-over {
+  border-color: var(--accent);
+  background: rgba(0,212,255,.08);
+}
+.stack-slot.locked {
+  opacity: .35;
+  pointer-events: none;
+}
+.stack-bottom {
+  width: var(--cell-w);
+  height: 8px;
+  background: var(--border);
+  border-radius: 0 0 6px 6px;
+  margin-top: 2px;
+}
+.stack-info {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+/* ── Queue ── */
+.queue-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 28px;
+  overflow-x: auto;
+}
+.queue-track {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 120px;
+  position: relative;
+}
+.queue-end {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.queue-end-label {
+  font-size: 10px; font-family: 'Space Mono', monospace;
+  letter-spacing: 1px; text-transform: uppercase;
+}
+.queue-slot {
+  width: var(--cell-w);
+  height: var(--cell-h);
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s;
+  flex-shrink: 0;
+}
+.queue-slot.rear-slot {
+  border-color: var(--green);
+  box-shadow: 0 0 10px rgba(16,185,129,.2);
+}
+.queue-slot.front-slot {
+  border-color: var(--red);
+  box-shadow: 0 0 10px rgba(239,68,68,.2);
+}
+.queue-slot.drop-over {
+  border-color: var(--accent);
+  background: rgba(0,212,255,.08);
+}
+.queue-arrow {
+  color: var(--border);
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* ── Cells ── */
+.cell {
+  width: var(--cell-w);
+  height: var(--cell-h);
+  background: #1e2d45;
+  border: 2px solid #2d4a6e;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 22px;
+  font-weight: 700;
+  cursor: grab;
+  position: relative;
+  transition: transform .18s cubic-bezier(.34,1.56,.64,1),
+              border-color .2s, background .2s, box-shadow .2s, opacity .2s;
+  flex-shrink: 0;
+  touch-action: none;
+}
+.cell:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 16px rgba(0,212,255,.3);
+  transform: translateY(-3px);
+}
+.cell.dragging {
+  opacity: .5;
+  transform: scale(.95);
+  cursor: grabbing;
+}
+.cell-ptr {
+  font-size: 9px; color: var(--muted);
+  font-family: 'Space Mono', monospace;
+  margin-top: 1px;
+}
+
+/* Ghost cell that follows cursor */
+#ghost {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: .92;
+  transform: rotate(3deg) scale(1.08);
+  transition: none;
+  display: none;
+}
+
+/* ── Info / Log ── */
+.bottom-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.stat-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-family: 'Space Mono', monospace;
+  font-size: 12px; color: var(--muted);
+  white-space: nowrap;
+}
+.chip strong { color: var(--text); }
+
+.log-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  max-height: 140px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.log-title {
+  font-size: 10px; color: var(--accent);
+  text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px;
+}
+.log-line {
+  color: var(--muted);
+  margin-bottom: 3px;
+  padding-left: 14px;
+  position: relative;
+  line-height: 1.6;
+}
+.log-line::before { content: '▸'; position: absolute; left: 0; color: var(--accent); }
+.log-line.ok::before { color: var(--green); }
+.log-line.warn::before { color: var(--accent3); }
+
+/* ── Spawning animation ── */
+@keyframes popIn {
+  from { opacity: 0; transform: scale(.3) rotate(-15deg); }
+  to   { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+.cell.spawning { animation: popIn .45s cubic-bezier(.34,1.56,.64,1) forwards; }
+
+/* ── Responsive ── */
+@media (max-width: 680px) {
+  :root { --cell-w: 58px; --cell-h: 58px; }
+  .cell { font-size: 17px; }
+  .setup { flex-direction: column; }
+  .bottom-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- Ghost element that follows cursor during drag -->
+<div id="ghost" class="cell"></div>
+
+<div class="wrap">
+
+  <!-- Header -->
+  <header>
+    <div class="logo">[]</div>
+    <div>
+      <h1>Array<em>Lab</em></h1>
+      <div class="sub">// drag-to-learn · data structure playground</div>
+    </div>
+  </header>
+
+  <!-- Setup -->
+  <div class="setup">
+    <div class="field">
+      <label>Count</label>
+      <input type="number" id="iCount" value="6" min="1" max="16">
+    </div>
+    <div class="field">
+      <label>Range</label>
+      <div class="range-pair">
+        <input type="number" id="iMin" value="1" style="width:76px">
+        <span>→</span>
+        <input type="number" id="iMax" value="99" style="width:76px">
+      </div>
+    </div>
+    <div class="field">
+      <label>Spawn delay (ms)</label>
+      <input type="number" id="iDelay" value="280" min="50" max="2000" style="width:100px">
+    </div>
+    <button class="btn-gen" onclick="generate()">▶ Generate</button>
+  </div>
+
+  <!-- Mode pills -->
+  <div class="modes">
+    <div class="mode-pill active" onclick="setMode('array',this)">[ ] Array</div>
+    <div class="mode-pill" onclick="setMode('linked',this)">↔ Linked List</div>
+    <div class="mode-pill" onclick="setMode('stack',this)">⧉ Stack</div>
+    <div class="mode-pill" onclick="setMode('queue',this)">⇒ Queue</div>
+  </div>
+
+  <!-- Complexity -->
+  <div class="cx-row" id="cxRow"></div>
+
+  <!-- Instruction -->
+  <div class="toast" id="toast">Hit <strong>Generate</strong> to spawn integers, then drag them into the structure.</div>
+
+  <!-- Spawn zone -->
+  <div class="zone-label">// spawn zone</div>
+  <div class="spawn-zone" id="spawnZone">
+    <div class="spawn-empty" id="spawnEmpty">Hit Generate →</div>
+  </div>
+
+  <!-- Structure zone — one div per mode, shown/hidden -->
+  <div class="struct-label" id="structLabel">Array Structure</div>
+
+  <!-- ARRAY -->
+  <div id="modeArray">
+    <div class="array-container">
+      <div class="array-slots" id="arraySlots"></div>
+    </div>
+  </div>
+
+  <!-- LINKED LIST -->
+  <div id="modeLinked" style="display:none">
+    <div class="linked-container">
+      <div class="linked-rail" id="linkedRail"></div>
+    </div>
+  </div>
+
+  <!-- STACK -->
+  <div id="modeStack" style="display:none">
+    <div class="stack-container">
+      <div class="stack-well">
+        <div class="stack-well-title">Stack</div>
+        <div class="stack-slots" id="stackSlots"></div>
+        <div class="stack-bottom"></div>
+      </div>
+      <div class="stack-info">
+        <div style="font-size:12px;color:var(--muted);font-family:'Space Mono',monospace;line-height:1.8">
+          <div style="color:var(--accent3);margin-bottom:8px">Stack rules (LIFO)</div>
+          <div>· Drag a cell onto <span style="color:var(--accent3)">TOP</span> to push</div>
+          <div>· Drag the <span style="color:var(--accent3)">TOP</span> cell to pop</div>
+          <div>· Lower cells are inaccessible</div>
+          <div style="margin-top:12px;color:var(--muted)">Think of a stack of books —<br>you can only touch the top one.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUEUE -->
+  <div id="modeQueue" style="display:none">
+    <div class="queue-container">
+      <div class="queue-track" id="queueTrack"></div>
+    </div>
+  </div>
+
+  <!-- Stats + Log -->
+  <div class="bottom-row" style="margin-top:8px">
+    <div class="stat-chips">
+      <div class="chip">Size: <strong id="sSize">0</strong></div>
+      <div class="chip">Mode: <strong id="sMode">Array</strong></div>
+      <div class="chip" id="chipExtra" style="display:none"></div>
+    </div>
+    <div class="log-box" id="logBox">
+      <div class="log-title">// operation log</div>
+      <div id="logLines"></div>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+// ════════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════════
+let mode = 'array';
+let spawnPool = [];     // {val, el} cells in spawn zone
+let structCells = [];   // {val, el} cells in structure
+
+// Array mode: fixed slot system
+let arraySlots = [];    // array of {el: slotEl, cell: {val,el} | null}
+const ARRAY_MAX = 12;
+
+// Stack mode
+let stackSlots = [];    // bottom to top order
+const STACK_MAX = 8;
+
+// Queue mode: front→rear
+let queueCells = [];
+const QUEUE_MAX = 10;
+
+// Linked list: ordered chain
+let llNodes = [];       // {val, el (cell)}
+
+// Drag state
+let dragSrc = null;     // {cell:{val,el}, from:'spawn'|'array'|'linked'|'stack'|'queue', slotIdx?}
+let ghost = document.getElementById('ghost');
+let ghostOffX = 0, ghostOffY = 0;
+
+const MODES = {
+  array:  { label:'Array',        structLabel:'Array  — indexed slots',
+            cx:['Access O(1)','Search O(n)','Insert O(n)','Delete O(n)'],
+            tip:'Drag a cell onto an <strong>empty slot</strong>. To insert in the middle, first drag each cell <strong>one slot to the right</strong> to make room, then drop the new cell.' },
+  linked: { label:'Linked List',  structLabel:'Linked List — node chain',
+            cx:['Access O(n)','Search O(n)','Insert O(1)','Delete O(1)'],
+            tip:'Drag a cell onto a <strong>+ gap</strong> to insert at that position. Drag a node back to spawn to remove it.' },
+  stack:  { label:'Stack (LIFO)', structLabel:'Stack — last in, first out',
+            cx:['Push O(1)','Pop O(1)','Peek O(1)','Search O(n)'],
+            tip:'<strong>Push</strong>: drag any spawn cell to the TOP slot. <strong>Pop</strong>: drag the TOP cell back to spawn. Lower cells are locked.' },
+  queue:  { label:'Queue (FIFO)', structLabel:'Queue — first in, first out',
+            cx:['Enqueue O(1)','Dequeue O(1)','Peek O(1)','Search O(n)'],
+            tip:'<strong>Enqueue</strong>: drag a cell to the <span style="color:var(--green)">REAR</span>. <strong>Dequeue</strong>: drag only from the <span style="color:var(--red)">FRONT</span>. Middle elements are locked.' },
+};
+
+// ════════════════════════════════════════════════════════
+//  GENERATE
+// ════════════════════════════════════════════════════════
+async function generate() {
+  const count = Math.max(1, Math.min(16, +document.getElementById('iCount').value || 6));
+  const min   = +document.getElementById('iMin').value || 1;
+  const max   = +document.getElementById('iMax').value || 99;
+  const delay = Math.max(50, +document.getElementById('iDelay').value || 280);
+  if (min > max) { logLine('Min must be ≤ Max','warn'); return; }
+
+  clearAll(true);
+  log(`Generating ${count} integers in [${min}, ${max}]`);
+
+  for (let i = 0; i < count; i++) {
+    const val = Math.floor(Math.random() * (max - min + 1)) + min;
+    await sleep(delay);
+    addToSpawn(val);
+  }
+  log(`${count} cells ready — drag them into the structure`, 'ok');
+}
+
+function addToSpawn(val) {
+  const empty = document.getElementById('spawnEmpty');
+  if (empty) empty.remove();
+
+  const el = makeCell(val);
+  const cellObj = { val, el };
+  el.addEventListener('mousedown', e => startDrag(e, cellObj, 'spawn'));
+  el.addEventListener('touchstart', e => startDrag(e, cellObj, 'spawn'), {passive:false});
+  document.getElementById('spawnZone').appendChild(el);
+  el.classList.add('spawning');
+  spawnPool.push(cellObj);
+}
+
+function makeCell(val) {
+  const el = document.createElement('div');
+  el.className = 'cell';
+  el.innerHTML = `<span>${val}</span><span class="cell-ptr"></span>`;
+  el.dataset.val = val;
+  return el;
+}
+
+// ════════════════════════════════════════════════════════
+//  MODE SWITCHING
+// ════════════════════════════════════════════════════════
+function setMode(m, pill) {
+  // Move everything back to spawn
+  collectAllToSpawn();
+
+  mode = m;
+  document.querySelectorAll('.mode-pill').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+
+  document.getElementById('sMode').textContent = MODES[m].label;
+  document.getElementById('structLabel').textContent = MODES[m].structLabel;
+  document.getElementById('toast').innerHTML = MODES[m].tip;
+
+  // Complexity badges
+  document.getElementById('cxRow').innerHTML = MODES[m].cx.map(c=>`<div class="cx">${c}</div>`).join('');
+
+  // Show correct panel
+  ['array','linked','stack','queue'].forEach(x => {
+    document.getElementById('mode'+cap(x)).style.display = (x===m) ? '' : 'none';
+  });
+
+  if (m === 'array')  buildArraySlots();
+  if (m === 'stack')  buildStackSlots();
+  if (m === 'queue')  buildQueueSlots();
+  if (m === 'linked') buildLinkedRail();
+
+  updateStats();
+  log(`Switched to ${MODES[m].label} mode`);
+}
+
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+function collectAllToSpawn() {
+  // Pull struct cells back to spawn
+  const extra = [...structCells];
+  structCells = [];
+  llNodes = [];
+  extra.forEach(c => {
+    c.el.classList.remove('spawning');
+    c.el.querySelector('.cell-ptr').textContent = '';
+    addCellToSpawnDom(c);
+  });
+
+  // Reset slot/node arrays
+  arraySlots = [];
+  stackSlots = [];
+  queueCells = [];
+  llNodes = [];
+  updateStats();
+}
+
+function addCellToSpawnDom(cellObj) {
+  const empty = document.getElementById('spawnEmpty');
+  if (empty) empty.remove();
+  // Re-attach drag listeners fresh
+  const old = cellObj.el;
+  old.replaceWith(old); // no-op, just ensure it's detached
+  cellObj.el.addEventListener('mousedown', e => startDrag(e, cellObj, 'spawn'));
+  cellObj.el.addEventListener('touchstart', e => startDrag(e, cellObj, 'spawn'), {passive:false});
+  document.getElementById('spawnZone').appendChild(cellObj.el);
+  spawnPool.push(cellObj);
+}
+
+// ════════════════════════════════════════════════════════
+//  ARRAY MODE
+// ════════════════════════════════════════════════════════
+function buildArraySlots(count) {
+  count = count || ARRAY_MAX;
+  arraySlots = [];
+  const container = document.getElementById('arraySlots');
+  container.innerHTML = '';
+
+  for (let i = 0; i < count; i++) {
+    // connector line between slots
+    if (i > 0) {
+      const conn = document.createElement('div');
+      conn.className = 'slot-connector';
+      container.appendChild(conn);
+    }
+    const wrap = document.createElement('div');
+    wrap.className = 'slot-wrap';
+
+    const slot = document.createElement('div');
+    slot.className = 'slot';
+    slot.dataset.idx = i;
+
+    const idx = document.createElement('div');
+    idx.className = 'slot-idx';
+    idx.textContent = `[${i}]`;
+
+    wrap.appendChild(slot);
+    wrap.appendChild(idx);
+    container.appendChild(wrap);
+
+    const slotObj = { el: slot, cell: null, idx: i };
+    arraySlots.push(slotObj);
+
+    // Drop target events
+    slot.addEventListener('dragover', e => e.preventDefault());
+    slot.addEventListener('mouseenter', () => {
+      if (dragSrc) slot.classList.add('drop-over');
+    });
+    slot.addEventListener('mouseleave', () => slot.classList.remove('drop-over'));
+  }
+}
+
+function dropOnArraySlot(slotIdx) {
+  if (!dragSrc) return;
+  const target = arraySlots[slotIdx];
+
+  // If target already has a cell, swap
+  if (target.cell) {
+    if (dragSrc.from === 'array' && dragSrc.slotIdx !== undefined) {
+      // Swap within array
+      const srcSlot = arraySlots[dragSrc.slotIdx];
+      const tmp = srcSlot.cell;
+      placeInSlot(slotIdx, tmp);
+      placeInSlot(dragSrc.slotIdx, target.cell);
+      log(`Swapped [${dragSrc.slotIdx}]↔[${slotIdx}]`);
+    } else {
+      log('Slot occupied — shift other cells first', 'warn');
+    }
+    return;
+  }
+
+  // Empty slot
+  const cellObj = dragSrc.cell;
+  if (dragSrc.from === 'spawn') {
+    removeFromSpawn(cellObj);
+    structCells.push(cellObj);
+  } else if (dragSrc.from === 'array') {
+    // Moving within array: vacate old slot
+    arraySlots[dragSrc.slotIdx].cell = null;
+    arraySlots[dragSrc.slotIdx].el.innerHTML = '';
+    arraySlots[dragSrc.slotIdx].el.classList.remove('has-cell');
+  }
+
+  placeInSlot(slotIdx, cellObj);
+  log(`Placed ${cellObj.val} → [${slotIdx}]`, 'ok');
+}
+
+function placeInSlot(idx, cellObj) {
+  const slot = arraySlots[idx];
+  slot.cell = cellObj;
+  slot.el.innerHTML = '';
+  slot.el.appendChild(cellObj.el);
+  slot.el.classList.add('has-cell');
+
+  // Re-bind drag from array
+  cellObj.el.onmousedown = null;
+  cellObj.el.ontouchstart = null;
+  cellObj.el.addEventListener('mousedown', e => startDrag(e, cellObj, 'array', idx));
+  cellObj.el.addEventListener('touchstart', e => startDrag(e, cellObj, 'array', idx), {passive:false});
+
+  updateStats();
+}
+
+function dropOnSpawnFromArray(cellObj, slotIdx) {
+  if (slotIdx !== undefined) {
+    arraySlots[slotIdx].cell = null;
+    arraySlots[slotIdx].el.innerHTML = '';
+    arraySlots[slotIdx].el.classList.remove('has-cell');
+  }
+  structCells = structCells.filter(c => c !== cellObj);
+  addCellToSpawnDom(cellObj);
+  log(`Removed ${cellObj.val} → spawn`,'warn');
+  updateStats();
+}
+
+// ════════════════════════════════════════════════════════
+//  LINKED LIST MODE
+// ════════════════════════════════════════════════════════
+function buildLinkedRail() {
+  llNodes = [];
+  renderLinkedList();
+}
+
+function renderLinkedList() {
+  const rail = document.getElementById('linkedRail');
+  rail.innerHTML = '';
+
+  // HEAD label
+  if (llNodes.length === 0) {
+    const lbl = document.createElement('div');
+    lbl.style.cssText = 'color:var(--muted);font-size:12px;font-family:"Space Mono",monospace;padding:8px';
+    lbl.textContent = 'Drag cells here to build the list →';
+    rail.appendChild(lbl);
+  }
+
+  // Drop zone at position 0
+  rail.appendChild(makeDropZone(0));
+
+  llNodes.forEach((node, i) => {
+    // Node box (cell)
+    const wrap = document.createElement('div');
+    wrap.className = 'll-node-wrap';
+
+    // The cell already exists, just place it
+    node.el.onmousedown = null;
+    node.el.ontouchstart = null;
+    node.el.addEventListener('mousedown', e => startDrag(e, node, 'linked', i));
+    node.el.addEventListener('touchstart', e => startDrag(e, node, 'linked', i), {passive:false});
+    node.el.querySelector('.cell-ptr').textContent = i === llNodes.length-1 ? 'null' : '→';
+    wrap.appendChild(node.el);
+    rail.appendChild(wrap);
+
+    // Arrow SVG
+    if (i < llNodes.length - 1) {
+      const arr = document.createElement('div');
+      arr.className = 'll-arrow';
+      arr.innerHTML = `<svg width="36" height="20" viewBox="0 0 36 20">
+        <line x1="0" y1="10" x2="28" y2="10" stroke="#00d4ff" stroke-width="2"/>
+        <polygon points="28,5 36,10 28,15" fill="#00d4ff"/>
+      </svg>`;
+      rail.appendChild(arr);
+    }
+
+    // Drop zone after this node
+    rail.appendChild(makeDropZone(i + 1));
+  });
+
+  // NULL terminator
+  const nullEl = document.createElement('div');
+  nullEl.className = 'll-null';
+  nullEl.textContent = llNodes.length ? '∅ null' : '';
+  rail.appendChild(nullEl);
+
+  updateStats();
+}
+
+function makeDropZone(pos) {
+  const dz = document.createElement('div');
+  dz.className = 'll-drop-zone';
+  dz.textContent = '+';
+  dz.dataset.pos = pos;
+  dz.addEventListener('mouseenter', () => { if (dragSrc) dz.classList.add('drop-over'); });
+  dz.addEventListener('mouseleave', () => dz.classList.remove('drop-over'));
+  return dz;
+}
+
+function dropOnLinkedList(pos) {
+  if (!dragSrc) return;
+  const cellObj = dragSrc.cell;
+
+  if (dragSrc.from === 'linked') {
+    // Reorder
+    const oldIdx = dragSrc.slotIdx;
+    llNodes.splice(oldIdx, 1);
+    let newPos = pos;
+    if (pos > oldIdx) newPos--;
+    llNodes.splice(newPos, 0, cellObj);
+    log(`Moved node ${cellObj.val} to position ${newPos}`);
+  } else if (dragSrc.from === 'spawn') {
+    removeFromSpawn(cellObj);
+    structCells.push(cellObj);
+    llNodes.splice(pos, 0, cellObj);
+    log(`Inserted ${cellObj.val} at position ${pos}`, 'ok');
+  }
+
+  renderLinkedList();
+}
+
+function dropOnSpawnFromLinked(cellObj, nodeIdx) {
+  llNodes.splice(nodeIdx, 1);
+  structCells = structCells.filter(c => c !== cellObj);
+  cellObj.el.querySelector('.cell-ptr').textContent = '';
+  addCellToSpawnDom(cellObj);
+  renderLinkedList();
+  log(`Removed node ${cellObj.val}`, 'warn');
+}
+
+// ════════════════════════════════════════════════════════
+//  STACK MODE
+// ════════════════════════════════════════════════════════
+function buildStackSlots() {
+  stackSlots = [];
+  renderStack();
+}
+
+function renderStack() {
+  const container = document.getElementById('stackSlots');
+  container.innerHTML = '';
+
+  for (let i = STACK_MAX - 1; i >= 0; i--) {
+    const slot = document.createElement('div');
+    slot.className = 'stack-slot';
+    slot.dataset.idx = i;
+
+    const isTop = (i === stackSlots.length); // next push target
+    const hasCell = i < stackSlots.length;
+    const isActualTop = (i === stackSlots.length - 1);
+
+    if (isActualTop && hasCell) slot.classList.add('top-slot');
+    if (hasCell && !isActualTop) slot.classList.add('locked');
+
+    if (hasCell) {
+      const cellObj = stackSlots[i];
+      cellObj.el.onmousedown = null;
+      cellObj.el.ontouchstart = null;
+      if (isActualTop) {
+        cellObj.el.addEventListener('mousedown', e => startDrag(e, cellObj, 'stack', i));
+        cellObj.el.addEventListener('touchstart', e => startDrag(e, cellObj, 'stack', i), {passive:false});
+      }
+      slot.appendChild(cellObj.el);
+    } else if (isTop) {
+      // This is the push target
+      slot.classList.add('top-slot');
+      slot.addEventListener('mouseenter', () => { if (dragSrc) slot.classList.add('drop-over'); });
+      slot.addEventListener('mouseleave', () => slot.classList.remove('drop-over'));
+    }
+
+    container.appendChild(slot);
+  }
+
+  const extra = document.getElementById('chipExtra');
+  if (stackSlots.length > 0) {
+    extra.style.display = '';
+    extra.innerHTML = `Top: <strong>${stackSlots[stackSlots.length-1].val}</strong>`;
+  } else {
+    extra.style.display = 'none';
+  }
+  updateStats();
+}
+
+function pushStack(cellObj) {
+  if (stackSlots.length >= STACK_MAX) { log('Stack overflow!','warn'); return; }
+  removeFromSpawn(cellObj);
+  structCells.push(cellObj);
+  stackSlots.push(cellObj);
+  log(`Push ${cellObj.val} → top`, 'ok');
+  renderStack();
+}
+
+function popStack(cellObj) {
+  if (stackSlots.length === 0) return;
+  stackSlots.pop();
+  structCells = structCells.filter(c => c !== cellObj);
+  cellObj.el.querySelector('.cell-ptr').textContent = '';
+  addCellToSpawnDom(cellObj);
+  log(`Pop ${cellObj.val} ← top`, 'warn');
+  renderStack();
+}
+
+// ════════════════════════════════════════════════════════
+//  QUEUE MODE
+// ════════════════════════════════════════════════════════
+function buildQueueSlots() {
+  queueCells = [];
+  renderQueue();
+}
+
+function renderQueue() {
+  const track = document.getElementById('queueTrack');
+  track.innerHTML = '';
+
+  // REAR label + drop zone
+  const rearWrap = document.createElement('div');
+  rearWrap.className = 'queue-end';
+  const rearLabel = document.createElement('div');
+  rearLabel.className = 'queue-end-label';
+  rearLabel.style.color = 'var(--green)';
+  rearLabel.textContent = 'REAR ←';
+  const rearSlot = document.createElement('div');
+  rearSlot.className = 'queue-slot rear-slot';
+  rearSlot.addEventListener('mouseenter', () => { if (dragSrc && dragSrc.from === 'spawn') rearSlot.classList.add('drop-over'); });
+  rearSlot.addEventListener('mouseleave', () => rearSlot.classList.remove('drop-over'));
+  rearWrap.appendChild(rearLabel);
+  rearWrap.appendChild(rearSlot);
+  track.appendChild(rearWrap);
+
+  if (queueCells.length === 0) {
+    const hint = document.createElement('div');
+    hint.style.cssText = 'color:var(--muted);font-size:11px;font-family:"Space Mono",monospace;padding:0 16px;';
+    hint.textContent = 'Queue is empty';
+    track.appendChild(hint);
+  }
+
+  // Render cells rear→front (visually left→right = rear first, front last for natural feel)
+  // Actually draw front on the right side for natural queue reading
+  [...queueCells].reverse().forEach((cellObj, i) => {
+    const realIdx = queueCells.length - 1 - i;
+    const isFront = realIdx === 0;
+    const isLocked = !isFront;
+
+    const arrow = document.createElement('div');
+    arrow.className = 'queue-arrow';
+    arrow.textContent = '→';
+    track.appendChild(arrow);
+
+    const slot = document.createElement('div');
+    slot.className = 'queue-slot';
+    if (isFront) {
+      slot.classList.add('front-slot');
+      slot.addEventListener('mouseenter', () => { if (dragSrc && dragSrc.from === 'queue') slot.classList.add('drop-over'); });
+      slot.addEventListener('mouseleave', () => slot.classList.remove('drop-over'));
+    }
+
+    cellObj.el.onmousedown = null;
+    cellObj.el.ontouchstart = null;
+    if (isFront) {
+      cellObj.el.addEventListener('mousedown', e => startDrag(e, cellObj, 'queue', realIdx));
+      cellObj.el.addEventListener('touchstart', e => startDrag(e, cellObj, 'queue', realIdx), {passive:false});
+      cellObj.el.style.opacity = '1';
+      cellObj.el.style.cursor = 'grab';
+    } else {
+      cellObj.el.style.opacity = '0.5';
+      cellObj.el.style.cursor = 'not-allowed';
+    }
+    slot.appendChild(cellObj.el);
+    track.appendChild(slot);
+  });
+
+  // FRONT label
+  const frontWrap = document.createElement('div');
+  frontWrap.className = 'queue-end';
+  const frontLabel = document.createElement('div');
+  frontLabel.className = 'queue-end-label';
+  frontLabel.style.color = 'var(--red)';
+  frontLabel.textContent = '→ FRONT';
+  frontWrap.appendChild(frontLabel);
+  track.appendChild(frontWrap);
+
+  const extra = document.getElementById('chipExtra');
+  if (queueCells.length > 0) {
+    extra.style.display = '';
+    extra.innerHTML = `Front: <strong>${queueCells[0].val}</strong>`;
+  } else {
+    extra.style.display = 'none';
+  }
+  updateStats();
+}
+
+function enqueue(cellObj) {
+  if (queueCells.length >= QUEUE_MAX) { log('Queue full!','warn'); return; }
+  removeFromSpawn(cellObj);
+  structCells.push(cellObj);
+  queueCells.push(cellObj);
+  log(`Enqueue ${cellObj.val} → rear`, 'ok');
+  renderQueue();
+}
+
+function dequeue(cellObj) {
+  queueCells.shift();
+  structCells = structCells.filter(c => c !== cellObj);
+  cellObj.el.style.opacity = '1';
+  cellObj.el.style.cursor = 'grab';
+  addCellToSpawnDom(cellObj);
+  log(`Dequeue ${cellObj.val} ← front`, 'warn');
+  renderQueue();
+}
+
+// ════════════════════════════════════════════════════════
+//  DRAG SYSTEM (unified mouse + touch)
+// ════════════════════════════════════════════════════════
+function startDrag(e, cellObj, from, slotIdx) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  const isTouch = e.type === 'touchstart';
+  const pt = isTouch ? e.touches[0] : e;
+
+  dragSrc = { cell: cellObj, from, slotIdx };
+
+  // Show ghost
+  const rect = cellObj.el.getBoundingClientRect();
+  ghostOffX = pt.clientX - rect.left;
+  ghostOffY = pt.clientY - rect.top;
+
+  ghost.textContent = '';
+  ghost.innerHTML = cellObj.el.innerHTML;
+  ghost.style.width  = rect.width  + 'px';
+  ghost.style.height = rect.height + 'px';
+  ghost.style.display = 'flex';
+  ghost.style.flexDirection = 'column';
+  ghost.style.alignItems = 'center';
+  ghost.style.justifyContent = 'center';
+  ghost.style.fontSize = getComputedStyle(cellObj.el).fontSize;
+  ghost.style.left = (pt.clientX - ghostOffX) + 'px';
+  ghost.style.top  = (pt.clientY - ghostOffY) + 'px';
+
+  cellObj.el.classList.add('dragging');
+
+  if (isTouch) {
+    document.addEventListener('touchmove', onDragMove, {passive:false});
+    document.addEventListener('touchend', onDragEnd);
+  } else {
+    document.addEventListener('mousemove', onDragMove);
+    document.addEventListener('mouseup', onDragEnd);
+  }
+}
+
+function onDragMove(e) {
+  e.preventDefault();
+  const isTouch = e.type === 'touchmove';
+  const pt = isTouch ? e.touches[0] : e;
+  ghost.style.left = (pt.clientX - ghostOffX) + 'px';
+  ghost.style.top  = (pt.clientY - ghostOffY) + 'px';
+}
+
+function onDragEnd(e) {
+  const isTouch = e.type === 'touchend';
+  const pt = isTouch ? e.changedTouches[0] : e;
+
+  ghost.style.display = 'none';
+  if (dragSrc) dragSrc.cell.el.classList.remove('dragging');
+
+  document.removeEventListener('mousemove', onDragMove);
+  document.removeEventListener('mouseup', onDragEnd);
+  document.removeEventListener('touchmove', onDragMove);
+  document.removeEventListener('touchend', onDragEnd);
+
+  if (!dragSrc) return;
+
+  const target = document.elementFromPoint(pt.clientX, pt.clientY);
+  if (!target) { dragSrc = null; return; }
+
+  handleDrop(target, pt);
+  dragSrc = null;
+
+  // Clear all drop highlights
+  document.querySelectorAll('.drop-over,.drop-target').forEach(el => {
+    el.classList.remove('drop-over','drop-target');
+  });
+}
+
+function handleDrop(target, pt) {
+  const ds = dragSrc;
+
+  // ── Spawn zone ──
+  if (target.closest('#spawnZone')) {
+    if (ds.from === 'array')  { dropOnSpawnFromArray(ds.cell, ds.slotIdx); return; }
+    if (ds.from === 'linked') { dropOnSpawnFromLinked(ds.cell, ds.slotIdx); return; }
+    if (ds.from === 'stack')  { popStack(ds.cell); return; }
+    if (ds.from === 'queue' && ds.slotIdx === 0)  { dequeue(ds.cell); return; }
+    if (ds.from === 'spawn')  { /* no-op */ return; }
+  }
+
+  // ── Array slots ──
+  if (mode === 'array') {
+    const slotEl = target.closest('.slot');
+    if (slotEl) {
+      dropOnArraySlot(+slotEl.dataset.idx);
+      return;
+    }
+    // Dropped on cell inside a slot
+    const cellInSlot = target.closest('.cell');
+    if (cellInSlot) {
+      const parentSlot = cellInSlot.closest('.slot');
+      if (parentSlot) {
+        dropOnArraySlot(+parentSlot.dataset.idx);
+        return;
+      }
+    }
+  }
+
+  // ── Linked List drop zones ──
+  if (mode === 'linked') {
+    const dz = target.closest('.ll-drop-zone');
+    if (dz) { dropOnLinkedList(+dz.dataset.pos); return; }
+    // Dropping linked node on spawn
+    if (ds.from === 'linked') {
+      logLine('Drag node to spawn zone to remove', 'warn');
+    }
+  }
+
+  // ── Stack ──
+  if (mode === 'stack') {
+    const slotEl = target.closest('.stack-slot');
+    if (slotEl && ds.from === 'spawn') {
+      // Only allow dropping on the top slot (next empty)
+      const topEmptyIdx = stackSlots.length;
+      const visualTopIdx = STACK_MAX - 1 - topEmptyIdx; // visual ordering reversed
+      // Accept if hovering the top-slot
+      if (slotEl.classList.contains('top-slot') && !slotEl.querySelector('.cell')) {
+        pushStack(ds.cell);
+        return;
+      }
+      log('You can only push onto the TOP slot', 'warn');
+      return;
+    }
+    if (slotEl && ds.from === 'stack') {
+      log('Drag TOP cell to spawn zone to pop', 'warn');
+    }
+  }
+
+  // ── Queue ──
+  if (mode === 'queue') {
+    const rearSlot = target.closest('.rear-slot');
+    if (rearSlot && ds.from === 'spawn') {
+      enqueue(ds.cell);
+      return;
+    }
+    if (ds.from === 'queue') {
+      log('Drag FRONT cell to spawn to dequeue', 'warn');
+    }
+    if (ds.from === 'spawn' && !rearSlot) {
+      log('Drop on the REAR (green) slot to enqueue', 'warn');
+    }
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════════════════
+function removeFromSpawn(cellObj) {
+  spawnPool = spawnPool.filter(c => c !== cellObj);
+  if (cellObj.el.parentNode === document.getElementById('spawnZone')) {
+    cellObj.el.remove();
+  }
+  if (spawnPool.length === 0) {
+    const zone = document.getElementById('spawnZone');
+    if (!zone.querySelector('.cell')) {
+      zone.innerHTML = '<div class="spawn-empty" id="spawnEmpty">Spawn zone empty — generate more</div>';
+    }
+  }
+}
+
+function updateStats() {
+  const size = mode === 'array'  ? arraySlots.filter(s=>s.cell).length
+             : mode === 'linked' ? llNodes.length
+             : mode === 'stack'  ? stackSlots.length
+             : queueCells.length;
+  document.getElementById('sSize').textContent = size;
+}
+
+function clearAll(silent) {
+  spawnPool = []; structCells = [];
+  arraySlots = []; stackSlots = []; queueCells = []; llNodes = [];
+
+  document.getElementById('spawnZone').innerHTML = '<div class="spawn-empty" id="spawnEmpty">Hit Generate →</div>';
+
+  if (mode === 'array')  buildArraySlots();
+  if (mode === 'stack')  buildStackSlots();
+  if (mode === 'queue')  buildQueueSlots();
+  if (mode === 'linked') buildLinkedRail();
+
+  document.getElementById('chipExtra').style.display = 'none';
+  updateStats();
+  if (!silent) log('Cleared all cells');
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function log(msg, type='') {
+  const el = document.createElement('div');
+  el.className = 'log-line' + (type ? ' '+type : '');
+  const now = new Date();
+  const ts = [now.getHours(),now.getMinutes(),now.getSeconds()].map(n=>String(n).padStart(2,'0')).join(':');
+  el.textContent = `[${ts}] ${msg}`;
+  const lines = document.getElementById('logLines');
+  lines.appendChild(el);
+  const box = document.getElementById('logBox');
+  box.scrollTop = box.scrollHeight;
+}
+function logLine(msg,type) { log(msg,type); } // alias
+
+// ════════════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════════════
+setMode('array', document.querySelector('.mode-pill.active'));
+log('ArrayLab ready · configure count/range and hit Generate');
+</script>
+</body>
+</html>
